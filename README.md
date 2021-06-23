@@ -28,7 +28,7 @@ The pipeline is required the extra files, for example hg19.chrom.sizes and hg19.
 * hg19.fa.out.bed - RepeatMasker .out file. Jan 29 2009 (open-3-2-7) version of RepeatMasker, RepBase library: RELEASE 20090120
 
 ## 3. Run
-* ### Strategy 1
+* ### Strategy 1 （Easy to process）
 The first step is used the tophat2 aligment the RNA-set data.
 ```
 sed 's/ /_2 /' FASTQ2|cat FASTQ1 - > merge.fastq ### distinguish the paired-end reads
@@ -48,7 +48,7 @@ cd OutputFile/
 python src/statistic_annotation.py refs/gencode.v19.annotation_noHead.gtf junctionSite.txt loci1_annotation5bp+gtf.txt loci2_annotation5bp+gtf.txt
 python src/statistic_annotation_overlap.py loci1_annotation5bp+gtf.txt loci2_annotation5bp+gtf.txt junctionLibrary_count_f.txt loci_annotation5bp+gtf.txt
 ```
-* ### Strategy 2
+* ### Strategy 2 （Quickly）
 The first step is used the bowtie2 aligment the RNA-seq data to get junction reads.
 ```
 cd example/
