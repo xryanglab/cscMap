@@ -1,7 +1,7 @@
 # !/usr/bin/python2.7
 # -*- coding: utf-8 -*-
 # Yuting Wang
-# 20201014
+# 20210623
 
 '''
 The pipeline "cscMap" is identified the cross-strand chimeric RNA(cscRNA) from RNA-seq data.
@@ -35,6 +35,7 @@ os.system("awk '$2==0' "+fo1+" >readW_map.sam")
 os.system("awk '$2==16' "+fo2+"> readC_map.sam")
 
 ## remove repeat sequences
+
 def filter_repeats(in1,in2):
 	read_noRepeats_r1 = []
 	read_noRepeats_r2 = []
@@ -57,18 +58,18 @@ def filter_repeats(in1,in2):
 	return read_noRepeats_r1,read_noRepeats_r2
 
 os.system("sam2bed < readW_map.sam > readW_map.bed")
-os.system("cut -f1-6 readW_map.bed > readW_map.bed6")
-os.system("bedtools intersect -a readW_map.bed6 -b ../refs/hg19.fa.out.bed  -wa -wb > readW_repeats_overlap.txt")
+os.system("cut -f1-6 readW_map.bed >readW_map.bed6")
+os.system("bedtools intersect -a readW_map.bed6 -b /Share2/home/yangxr/LabMem/ytwang/Database/hg19.fa.out.bed  -wa -wb > readW_repeats_overlap.txt")
 os.system("cut -f 4 readW_repeats_overlap.txt  |sort -u > readW_repeats_overlap_lable.txt")
 [readW_noRepeats_r1,readW_noRepeats_r2] = filter_repeats("readW_repeats_overlap_lable.txt","readW_map.sam")
 
 os.system("sam2bed < readC_map.sam > readC_map.bed")
 os.system("cut -f1-6 readC_map.bed > readC_map.bed6")
-os.system("bedtools intersect -a readC_map.bed6 -b ../refs/hg19.fa.out.bed  -wa -wb > readC_repeats_overlap.txt")
+os.system("bedtools intersect -a readC_map.bed6 -b /Share2/home/yangxr/LabMem/ytwang/Database/hg19.fa.out.bed  -wa -wb > readC_repeats_overlap.txt")
 os.system("cut -f 4 readC_repeats_overlap.txt  |sort -u > readC_repeats_overlap_lable.txt")
 [readC_noRepeats_r1,readC_noRepeats_r2] = filter_repeats("readC_repeats_overlap_lable.txt","readC_map.sam")
 
-## keep the junction sites in same chromosome
+
 def filter_chr(array1,array2):
 	array = []
 	arr1 = {}
@@ -84,7 +85,6 @@ def filter_chr(array1,array2):
 			array.append(array2[j])
 	return array
 
-## require the reads cross the junction sites >20nt
 array_sameChr_r1 = filter_chr(readW_noRepeats_r1,readC_noRepeats_r1)
 array_sameChr_r2 = filter_chr(readW_noRepeats_r2,readC_noRepeats_r2)
 
@@ -126,7 +126,6 @@ def filter_arms(array):
 			line1 = ""
 	return arr
 
-## keep the paired reads mapped on the genome with a proper location corresponding the junction sites.
 array_r1_need = filter_arms(array_sameChr_r1)
 array_r2_need = filter_arms(array_sameChr_r2)
 
@@ -178,7 +177,7 @@ def filter_overlap_reviseLoci(array1,dic2):
 				mismatch3 = int(dic2[name][(dic2[name].find("NM:i:")+5):(dic2[name].find("NM:i:")+7)])
 				if chr2 == chr3:
 					if mismatch1<3 and mismatch2<3 and mismatch3<3:
-						if ("MS" == tmp1_s) and ("MS" == tmp2_s):
+						if ("MS" in tmp1_s) and ("MS" in tmp2_s) and (int(tmp1_num)+int(tmp2_num) >=101):
 							if(tmp1[1]=="0")and(tmp2[1]=="16")and(tmp3[1]=="16"):
 								if(loci3_end < loci1_end):
 									array.append(array1[i])
@@ -189,7 +188,7 @@ def filter_overlap_reviseLoci(array1,dic2):
 									array.append(array1[i])
 									array.append(array1[i+1])
 									array.append(dic2[name])
-						elif ("SM" == tmp1_s) and ("SM" == tmp2_s):
+						elif ("SM" in tmp1_s) and ("SM" in tmp2_s) and (int(tmp1_num)+int(tmp2_num) >=101):
 							if(tmp1[1]=="0")and(tmp2[1]=="16")and(tmp3[1]=="0"):
 								if(loci3 > loci2):
 									array.append(array1[i])
@@ -226,7 +225,7 @@ def filter_overlap_reviseLoci(array1,dic2):
 				mismatch3 = int(dic2[name][(dic2[name].find("NM:i:")+5):(dic2[name].find("NM:i:")+7)])
 				if chr1 == chr2:
 					if mismatch1<3 and mismatch2<3 and mismatch3<3:
-						if ("MS" == tmp2_s) and ("MS" == tmp3_s):
+						if ("MS" in tmp2_s) and ("MS" in tmp3_s) and (int(tmp2_num)+int(tmp3_num) >=101):
 							if(tmp1[1]=="16")and(tmp2[1]=="0")and(tmp3[1]=="16"):
 								if(loci1_end < loci2_end):
 									array.append(array1[i])
@@ -237,7 +236,7 @@ def filter_overlap_reviseLoci(array1,dic2):
 									array.append(array1[i])
 									array.append(array1[i+1])
 									array.append(dic2[name])
-						elif ("SM" == tmp2_s) and ("SM" == tmp3_s):
+						elif ("SM" in tmp2_s) and ("SM" in tmp3_s) and (int(tmp2_num)+int(tmp3_num) >=101):
 							if(tmp1[1]=="0")and(tmp2[1]=="0")and(tmp3[1]=="16"):
 								if(loci1 > loci3):
 									array.append(array1[i])
@@ -276,8 +275,7 @@ for i in range(0,2):
 	os.system("samtools view -bS "+file_names[i]+".sam >"+file_names[i]+".bam")
 	os.system("samtools sort "+file_names[i]+".bam >"+file_names[i]+"_sort.bam")
 	os.system("samtools index "+file_names[i]+"_sort.bam")
-	# os.system("bam2wig.py -i "+file_names[i]+"_sort.bam -s ../refs/hg19.chrom.sizes -o "+file_names[i]+"_sort")
-print "Finished the prepare files for IGV..."
+	os.system("bam2wig.py -i "+file_names[i]+"_sort.bam -s /Share2/home/yangxr/LabMem/ytwang/Database/hg19.chrom.sizes -o "+file_names[i]+"_sort")
 
 # statistic junction loci and counts
 fout3 = argv[5]
@@ -321,7 +319,7 @@ for i in range(0,2):
 				loci1_dic[str2]=str(junctionLoci1)
 				loci2_dic[str1_2]=str(junctionLoci2)
 				loci2_dic[str2_2]=str(junctionLoci2)
-			output.write(tmp1[2]+"\t"+str(junctionLoci1)+"\t"+str(junctionLoci2)+"\t"+"MS"+"\n")
+			output.write("MS:"+"\t"+tmp1[2]+"\t"+str(junctionLoci1)+"\t"+tmp2[2]+"\t"+str(junctionLoci2)+"\n")
 		elif ("SM" in tmp1_s) and ("SM" in tmp2_s):
 			junctionLoci1=loci1
 			junctionLoci2=loci2
@@ -340,11 +338,9 @@ for i in range(0,2):
 				loci1_dic[str2]=str(junctionLoci1)
 				loci2_dic[str1_2]=str(junctionLoci2)
 				loci2_dic[str2_2]=str(junctionLoci2)
-			output.write(tmp1[2]+"\t"+str(junctionLoci1)+"\t"+str(junctionLoci2)+"\t"+"SM"+"\n")
+			output.write("SM:"+"\t"+tmp1[2]+"\t"+str(junctionLoci1)+"\t"+tmp2[2]+"\t"+str(junctionLoci2)+"\n")
 
 output.close()
-print "cscMap is finished."
-
 # os.system('''sort '''+fout3+''' |uniq -c |sort -r -n |awk -F'[MS|SM]' '$1>=2' |awk '{print $3"\t"$4"\t"$5"\t"$6"\t"$2"\t"$1;}'|sed 's/://' > junctionLibrary_count.txt''')
 
 # delete the tmp files
@@ -356,5 +352,4 @@ os.system("rm r1_need_r2_90M.sam")
 os.system("rm r1_need_r2_90M.bam")
 os.system("rm r2_need_r1_90M.sam")
 os.system("rm r2_need_r1_90M.bam")
-
 
