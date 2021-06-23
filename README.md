@@ -64,6 +64,9 @@ python getFQ.py r1_need_r2_90M.txt r1_need_r2_90M.fq
 python getFQ.py r2_need_r1_90M.txt r2_need_r1_90M.fq
 tophat2 -p 8 --library-type fr-firststrand -G refs/gencode.v19.annotation.gtf -o tophat_normalMapping1/ refs/Bowtie2Index/genome r1_need_r2_90M.fq
 tophat2 -p 8 --library-type fr-firststrand -G refs/gencode.v19.annotation.gtf -o tophat_normalMapping2/ refs/Bowtie2Index/genome r2_need_r1_90M.fq
+samtools view tophat_normalMapping1/unmapped.bam > tophat_normalMapping1/unmapped.sam
+cut -f1 tophat_normalMapping1/unmapped.sam > tophat_normalMapping1/unmapped.lables
+sort tophat_normalMapping1/unmapped.lables |uniq >tophat_normalMapping1/unmapped.uniqLables
 python rmToTrspt.py r1_need_r2_90M.txt ../tophat_normalMapping1/unmapped.uniqLables r1_need_r2_90M_f.txt
 python rmToTrspt.py r2_need_r1_90M.txt ../tophat_normalMapping2/unmapped.uniqLables r2_need_r1_90M_f.txt
 This step aims to remove the junction reads which is high similarity with the linear mRNA.
