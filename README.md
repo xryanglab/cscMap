@@ -28,21 +28,24 @@ hg19.chrom.sizes - Two-column tab-separated text file containing assembly sequen
 hg19.fa.out.bed - RepeatMasker .out file. Jan 29 2009 (open-3-2-7) version of RepeatMasker, RepBase library: RELEASE 20090120
 
 ### 3. Run
-The first step is used the tophat2 aligment the RNA-set data, 
+The first step is used the tophat2 aligment the RNA-set data.
+\```
 	tophat2 -p 8 --library-type fr-firststrand -G refs/gencode.v19.annotation.gtf -o tophat_normalMapping/ refs/Bowtie2Index/genome FASTQ1 FASTQ2
 After this step we get the unmapped.sam file, which is converted to unmapped.fastq and as the input for the cscMap pipeline.
-
+\```
 The second step is executed the cscMap pipeline to identify the cscRNAs.
+\```
 	cd example/
 	bowtie2 -p 8 -q unmapped.fastq -x refs/Bowtie2Index/genome --nofw --local -S readC.sam
 	bowtie2 -p 8 -q unmapped.fastq -x refs/Bowtie2Index/genome --norc --local -S readW.sam
 	python src/cscRNA_identify.py readW.sam readC.sam OutputFile/r1_need_r2_90M.txt OutputFile/r2_need_r1_90M.txt OutputFile/junctionSite.txt
-
+\```
 The last step is annotated the junction sites and statistic analysis for cscRNAs.
+\```
 	cd OutputFile/
 	python src/statistic_annotation.py refs/gencode.v19.annotation_noHead.gtf junctionSite.txt loci1_annotation5bp+gtf.txt loci2_annotation5bp+gtf.txt
 	python src/statistic_annotation_overlap.py loci1_annotation5bp+gtf.txt loci2_annotation5bp+gtf.txt junctionLibrary_count_f.txt loci_annotation5bp+gtf.txt
-
+\```
 ## Copyright and license
 Copyright (c) 2020 Yuting Wang
 The cscMap codes are licensed under THU.
