@@ -306,38 +306,12 @@ for i in range(0,2):
 			junctionLoci2 = loci2+int(tmp2_num)-1
 			if junctionLoci1 > junctionLoci2:
 				junctionLoci1,junctionLoci2 = junctionLoci2,junctionLoci1
-			for i in range(5):
-				lociP = str(int(junctionLoci1)+i+1)
-				lociM = str(int(junctionLoci1)-i-1)
-				lociP2 = str(int(junctionLoci2)+i+1)
-				lociM2 = str(int(junctionLoci2)-i-1)
-				str1=tmp1[2]+"\t"+lociP
-				str2=tmp1[2]+"\t"+lociM
-				str1_2=tmp1[2]+"\t"+lociP2
-				str2_2=tmp1[2]+"\t"+lociM2
-				loci1_dic[str1]=str(junctionLoci1)
-				loci1_dic[str2]=str(junctionLoci1)
-				loci2_dic[str1_2]=str(junctionLoci2)
-				loci2_dic[str2_2]=str(junctionLoci2)
 			output.write("MS:"+"\t"+tmp1[2]+"\t"+str(junctionLoci1)+"\t"+tmp2[2]+"\t"+str(junctionLoci2)+"\n")
 		elif ("SM" in tmp1_s) and ("SM" in tmp2_s):
 			junctionLoci1=loci1
 			junctionLoci2=loci2
 			if junctionLoci1 > junctionLoci2:
 				junctionLoci1,junctionLoci2 = junctionLoci2,junctionLoci1
-			for i in range(5):
-				lociP = str(int(junctionLoci1)+i+1)
-				lociM = str(int(junctionLoci1)-i-1)
-				lociP2 = str(int(junctionLoci2)+i+1)
-				lociM2 = str(int(junctionLoci2)-i-1)
-				str1=tmp1[2]+"\t"+lociP
-				str2=tmp1[2]+"\t"+lociM
-				str1_2=tmp1[2]+"\t"+lociP2
-				str2_2=tmp1[2]+"\t"+lociM2
-				loci1_dic[str1]=str(junctionLoci1)
-				loci1_dic[str2]=str(junctionLoci1)
-				loci2_dic[str1_2]=str(junctionLoci2)
-				loci2_dic[str2_2]=str(junctionLoci2)
 			output.write("SM:"+"\t"+tmp1[2]+"\t"+str(junctionLoci1)+"\t"+tmp2[2]+"\t"+str(junctionLoci2)+"\n")
 
 output.close()
