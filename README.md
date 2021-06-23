@@ -1,6 +1,6 @@
 # cscMap
 cscMap is a bioinformatics pipeline to search for the RNA chimeras resulted from fusions of the transcripts encoded by the two opposite DNA strands.
-### 1. Python dependency
+## 1. Python dependency
 cscMap was written in Python 2.7.16 and has dependencies for popular python libraries:
 
 * re
@@ -18,7 +18,7 @@ Also, it depends on some bioinformatics packages.
 Tophat, bowtie are used to align the reads to genome and transcriptome.
 RSEQC(bam2wig.py), BEDOPS(sam2bed), bedtools(intersect) are used to file format conversion.
 
-### 2. References file
+## 2. References file
 The reference genome of human (hg19) and mouse (mm10) were downloaded from the UCSC Genome Browser, and the reference genomes of other species were from the Ensemble Genome Browser (zebrafish: GRCz11, C. elegans: WBcel235, fruit fly: BDGP6, Saccharomyces: R64-1-1, E.coli: Escherichia_coliK-12_substr.MG1655). 
 
 The genome annotation files of both human and mouse were obtained from GENCODE (human: v19, mouse: vM17), and the annotation files of all the other species were from the Ensemble Genome Browser. 
@@ -27,7 +27,8 @@ The pipeline is required the extra files, for example hg19.chrom.sizes and hg19.
 * hg19.chrom.sizes - Two-column tab-separated text file containing assembly sequence names and sizes.
 * hg19.fa.out.bed - RepeatMasker .out file. Jan 29 2009 (open-3-2-7) version of RepeatMasker, RepBase library: RELEASE 20090120
 
-### 3. Run
+## 3. Run
+* ### Strategy 1
 The first step is used the tophat2 aligment the RNA-set data.
 ```
 sed 's/ /_2 /' FASTQ2|cat FASTQ1 - > merge.fastq ### distinguish the paired-end reads
@@ -47,6 +48,33 @@ cd OutputFile/
 python src/statistic_annotation.py refs/gencode.v19.annotation_noHead.gtf junctionSite.txt loci1_annotation5bp+gtf.txt loci2_annotation5bp+gtf.txt
 python src/statistic_annotation_overlap.py loci1_annotation5bp+gtf.txt loci2_annotation5bp+gtf.txt junctionLibrary_count_f.txt loci_annotation5bp+gtf.txt
 ```
+* ### Strategy 2
+The first step is used the bowtie2 aligment the RNA-seq data to get junction reads.
+```
+cd example/
+sed 's/ /_2 /' FASTQ2|cat FASTQ1 - > merge.fastq ### distinguish the paired-end reads
+bowtie2 -p 8 -q unmapped.fastq -x refs/Bowtie2Index/genome --nofw --local -S readC.sam
+bowtie2 -p 8 -q unmapped.fastq -x refs/Bowtie2Index/genome --norc --local -S readW.sam
+After this step we get the junction file, which is the input for the cscMap pipeline.
+```
+The second step is executed the cscMap pipeline to identify the cscRNAs.
+```
+python src/cscRNA_identify.py readW.sam readC.sam OutputFile/r1_need_r2_90M.txt OutputFile/r2_need_r1_90M.txt OutputFile/junctionSite.txt
+python getFQ.py r1_need_r2_90M.txt r1_need_r2_90M.fq
+python getFQ.py r2_need_r1_90M.txt r2_need_r1_90M.fq
+tophat2 -p 8 --library-type fr-firststrand -G refs/gencode.v19.annotation.gtf -o tophat_normalMapping1/ refs/Bowtie2Index/genome r1_need_r2_90M.fq
+tophat2 -p 8 --library-type fr-firststrand -G refs/gencode.v19.annotation.gtf -o tophat_normalMapping2/ refs/Bowtie2Index/genome r2_need_r1_90M.fq
+python rmToTrspt.py r1_need_r2_90M.txt ../tophat_normalMapping1/unmapped.uniqLables r1_need_r2_90M_f.txt
+python rmToTrspt.py r2_need_r1_90M.txt ../tophat_normalMapping2/unmapped.uniqLables r2_need_r1_90M_f.txt
+This step aims to remove the junction reads which is high similarity with the linear mRNA.
+```
+The last step is annotated the junction sites and statistic analysis for cscRNAs.
+```
+cd OutputFile/
+python src/statistic_annotation.py refs/gencode.v19.annotation_noHead.gtf junctionSite.txt loci1_annotation5bp+gtf.txt loci2_annotation5bp+gtf.txt
+python src/statistic_annotation_overlap.py loci1_annotation5bp+gtf.txt loci2_annotation5bp+gtf.txt junctionLibrary_count_f.txt loci_annotation5bp+gtf.txt
+```
+
 ## Copyright and license
 Copyright (c) 2020 Yuting Wang
 The cscMap codes are licensed under THU.
