@@ -306,13 +306,13 @@ for i in range(0,2):
 			junctionLoci2 = loci2+int(tmp2_num)-1
 			if junctionLoci1 > junctionLoci2:
 				junctionLoci1,junctionLoci2 = junctionLoci2,junctionLoci1
-			output.write("MS:"+"\t"+tmp1[2]+"\t"+str(junctionLoci1)+"\t"+tmp2[2]+"\t"+str(junctionLoci2)+"\n")
+			output.write(tmp1[2]+"\t"+str(junctionLoci1)+"\t"+str(junctionLoci2)+"\t"+"MS"+"\n")
 		elif ("SM" in tmp1_s) and ("SM" in tmp2_s):
 			junctionLoci1=loci1
 			junctionLoci2=loci2
 			if junctionLoci1 > junctionLoci2:
 				junctionLoci1,junctionLoci2 = junctionLoci2,junctionLoci1
-			output.write("SM:"+"\t"+tmp1[2]+"\t"+str(junctionLoci1)+"\t"+tmp2[2]+"\t"+str(junctionLoci2)+"\n")
+			output.write(tmp1[2]+"\t"+str(junctionLoci1)+"\t"+str(junctionLoci2)+"\t"+"SM"+"\n")
 
 output.close()
 # os.system('''sort '''+fout3+''' |uniq -c |sort -r -n |awk -F'[MS|SM]' '$1>=2' |awk '{print $3"\t"$4"\t"$5"\t"$6"\t"$2"\t"$1;}'|sed 's/://' > junctionLibrary_count.txt''')
