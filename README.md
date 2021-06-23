@@ -28,27 +28,7 @@ The pipeline is required the extra files, for example hg19.chrom.sizes and hg19.
 * hg19.fa.out.bed - RepeatMasker .out file. Jan 29 2009 (open-3-2-7) version of RepeatMasker, RepBase library: RELEASE 20090120
 
 ## 3. Run
-* ### Strategy 1 （Easy to process）
-The first step is used the tophat2 aligment the RNA-set data.
-```
-sed 's/ /_2 /' FASTQ2|cat FASTQ1 - > merge.fastq ### distinguish the paired-end reads
-tophat2 -p 8 --library-type fr-firststrand -G refs/gencode.v19.annotation.gtf -o tophat_normalMapping/ refs/Bowtie2Index/genome merge.fastq
-After this step we get the unmapped.sam file, which is converted to unmapped.fastq and as the input for the cscMap pipeline.
-```
-The second step is executed the cscMap pipeline to identify the cscRNAs.
-```
-cd example/
-bowtie2 -p 8 -q unmapped.fastq -x refs/Bowtie2Index/genome --nofw --local -S readC.sam
-bowtie2 -p 8 -q unmapped.fastq -x refs/Bowtie2Index/genome --norc --local -S readW.sam
-python src/cscRNA_identify.py readW.sam readC.sam OutputFile/r1_need_r2_90M.txt OutputFile/r2_need_r1_90M.txt OutputFile/junctionSite.txt
-```
-The last step is annotated the junction sites and statistic analysis for cscRNAs.
-```
-cd OutputFile/
-python src/statistic_annotation.py refs/gencode.v19.annotation_noHead.gtf junctionSite.txt loci1_annotation5bp+gtf.txt loci2_annotation5bp+gtf.txt
-python src/statistic_annotation_overlap.py loci1_annotation5bp+gtf.txt loci2_annotation5bp+gtf.txt junctionLibrary_count_f.txt loci_annotation5bp+gtf.txt
-```
-* ### Strategy 2 （Quickly）
+* ### Strategy 1 （Quickly）
 The first step is used the bowtie2 aligment the RNA-seq data to get junction reads.
 ```
 cd example/
@@ -70,6 +50,27 @@ sort tophat_normalMapping1/unmapped.lables |uniq >tophat_normalMapping1/unmapped
 python rmToTrspt.py r1_need_r2_90M.txt ../tophat_normalMapping1/unmapped.uniqLables r1_need_r2_90M_f.txt
 python rmToTrspt.py r2_need_r1_90M.txt ../tophat_normalMapping2/unmapped.uniqLables r2_need_r1_90M_f.txt
 This step aims to remove the junction reads which is high similarity with the linear mRNA.
+```
+The last step is annotated the junction sites and statistic analysis for cscRNAs.
+```
+cd OutputFile/
+python src/statistic_annotation.py refs/gencode.v19.annotation_noHead.gtf junctionSite.txt loci1_annotation5bp+gtf.txt loci2_annotation5bp+gtf.txt
+python src/statistic_annotation_overlap.py loci1_annotation5bp+gtf.txt loci2_annotation5bp+gtf.txt junctionLibrary_count_f.txt loci_annotation5bp+gtf.txt
+```
+
+* ### Strategy 2 （Easy to process）
+The first step is used the tophat2 aligment the RNA-set data.
+```
+sed 's/ /_2 /' FASTQ2|cat FASTQ1 - > merge.fastq ### distinguish the paired-end reads
+tophat2 -p 8 --library-type fr-firststrand -G refs/gencode.v19.annotation.gtf -o tophat_normalMapping/ refs/Bowtie2Index/genome merge.fastq
+After this step we get the unmapped.sam file, which is converted to unmapped.fastq and as the input for the cscMap pipeline.
+```
+The second step is executed the cscMap pipeline to identify the cscRNAs.
+```
+cd example/
+bowtie2 -p 8 -q unmapped.fastq -x refs/Bowtie2Index/genome --nofw --local -S readC.sam
+bowtie2 -p 8 -q unmapped.fastq -x refs/Bowtie2Index/genome --norc --local -S readW.sam
+python src/cscRNA_identify.py readW.sam readC.sam OutputFile/r1_need_r2_90M.txt OutputFile/r2_need_r1_90M.txt OutputFile/junctionSite.txt
 ```
 The last step is annotated the junction sites and statistic analysis for cscRNAs.
 ```
